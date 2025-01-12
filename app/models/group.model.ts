@@ -1,4 +1,5 @@
 import {
+  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
@@ -10,6 +11,8 @@ import {
 export class Group {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: "varchar" })
   groupTitle: string;
 
   @CreateDateColumn()

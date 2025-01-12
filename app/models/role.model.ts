@@ -1,10 +1,18 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 @Entity()
 export class Role {
   @PrimaryGeneratedColumn()
   id: number;
-    @Column({ type: "varchar" })
+
+  @Column({ type: "varchar" })
   roleTitle: string;
 
   @CreateDateColumn()
