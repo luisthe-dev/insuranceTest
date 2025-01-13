@@ -1,13 +1,64 @@
 import { Request, Response } from "express";
+import { CreatePermissionDto } from "../dtos/permission/createPermission.dto";
+import PermissionService from "../services/permission.service";
+import { ResponsesHelper } from "../helpers/responses";
+import { paginationCheck } from "../helpers/dtos/pagination-request.dto";
+import { UpdatePermissionDto } from "../dtos/permission/updatePermission.dto";
 
 export default class PermissionController {
-  constructor() {}
+  permissionService: PermissionService;
+  responseHelper: ResponsesHelper;
+  constructor() {
+    this.permissionService = new PermissionService();
+    this.responseHelper = new ResponsesHelper();
+  }
 
-  createPermission = (req: Request, res: Response) => {};
+  createPermission = async (req: Request, res: Response) => {
+    const userData: CreatePermissionDto = req.body;
 
-  getPermission = (req: Request, res: Response) => {};
+    const response = await this.permissionService.createPermission(userData);
 
-  editPermission = (req: Request, res: Response) => {};
+    this.responseHelper.buildControllerResponse(response, res);
+  };
 
-  deletePermission = (req: Request, res: Response) => {};
+  getAllPermission = async (req: Request, res: Response) => {
+    // @ts-ignore
+    const paginationData: PaginationRequestDto = paginationCheck(req.query);
+
+    const response = await this.permissionService.getPermissions(
+      paginationData
+    );
+
+    this.responseHelper.buildPaginatedControllerResponse(
+      response,
+      paginationData,
+      res
+    );
+  };
+
+  getPermission = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const response = await this.permissionService.getPermission(+id);
+
+    this.responseHelper.buildControllerResponse(response, res);
+  };
+
+  editPermission = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const userData: UpdatePermissionDto = req.body;
+
+    const response = await this.permissionService.editPermission(+id, userData);
+
+    this.responseHelper.buildControllerResponse(response, res);
+  };
+
+  deletePermission = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const response = await this.permissionService.deletePermission(+id);
+
+    this.responseHelper.buildControllerResponse(response, res);
+  };
 }

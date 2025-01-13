@@ -89,9 +89,8 @@ export default class UserController {
   deleteUser = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const userData: UpdateUserDto = req.body;
-
     const response = await this.userService.deleteUser(+id);
 
-    this.responseHelper.buildControllerResponse(response, res);};
+    this.responseHelper.buildControllerResponse(response, res);
+  };
 }

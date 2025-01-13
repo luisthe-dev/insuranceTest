@@ -145,7 +145,7 @@ export default class UserService {
   getUsers = async (
     paginationData: PaginationRequestDto
   ): Promise<PaginatedServiceResponseBuild> => {
-    const userActivity = await this.userRepository.find({
+    const users = await this.userRepository.find({
       order: {
         id: "DESC",
       },
@@ -156,9 +156,9 @@ export default class UserService {
     const total_count = await this.userRepository.count();
 
     return this.responseHelper.buildPaginatedServiceResponse(
-      userActivity,
+      users,
       total_count,
-      "User Activity Fetched Successfully"
+      "User Fetched Successfully"
     );
   };
 
@@ -179,14 +179,17 @@ export default class UserService {
     );
   };
 
-  updateUser = async (userToken: string, updateData: UpdateUserDto): Promise<ServiceResponseBuild> => {
+  updateUser = async (
+    userToken: string,
+    updateData: UpdateUserDto
+  ): Promise<ServiceResponseBuild> => {
     const userData = await this.getSelf(userToken);
 
     if (userData.status == "failed") return userData;
 
     const user = { ...userData.data, ...updateData };
 
-    this.userRepository.save(user, { reload: true });
+    await this.userRepository.save(user, { reload: true });
 
     return this.responseHelper.buildServiceResponse(
       user,
@@ -194,14 +197,17 @@ export default class UserService {
     );
   };
 
-  editUser = async (userId: number, updateData: UpdateUserDto): Promise<ServiceResponseBuild> => {
+  editUser = async (
+    userId: number,
+    updateData: UpdateUserDto
+  ): Promise<ServiceResponseBuild> => {
     const userData = await this.getUser(userId);
 
     if (userData.status == "failed") return userData;
 
     const user = { ...userData.data, ...updateData };
 
-    this.userRepository.save(user, { reload: true });
+    await this.userRepository.save(user, { reload: true });
 
     return this.responseHelper.buildServiceResponse(
       user,
@@ -210,8 +216,7 @@ export default class UserService {
   };
 
   deleteUser = async (userId: number): Promise<ServiceResponseBuild> => {
-
-    this.userRepository.delete(userId);
+    await this.userRepository.delete(userId);
 
     return this.responseHelper.buildServiceResponse(
       {},

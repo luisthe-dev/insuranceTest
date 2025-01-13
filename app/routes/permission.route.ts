@@ -8,6 +8,8 @@ const permissionController: PermissionController = new PermissionController();
 
 permissionRouter.post("/", permissionController.createPermission);
 
+permissionRouter.get("/", permissionController.getAllPermission);
+
 permissionRouter.get("/:id", permissionController.getPermission);
 permissionRouter.patch("/:id", permissionController.editPermission);
 permissionRouter.delete("/:id", permissionController.deletePermission);
