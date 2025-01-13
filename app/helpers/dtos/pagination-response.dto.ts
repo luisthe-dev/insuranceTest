@@ -2,7 +2,7 @@ import { PaginationRequestDto } from './pagination-request.dto';
 
 export interface PaginationResponseDto {
   total: number;
-  count: number;
+  limit: number;
   current_page: number;
   total_page: number;
 }
@@ -17,7 +17,7 @@ export const buildPaginatedResponse = (
 ): PaginationResponseDto => {
   return {
     total: pageData.total_count,
-    count: +paginationData.limit,
+    limit: +paginationData.limit,
     current_page: +paginationData.page,
     total_page: Math.ceil(+pageData.total_count / +paginationData.limit),
   };

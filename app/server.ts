@@ -16,10 +16,10 @@ app.use(express.json());
 
 AppDataSource.initialize()
   .then(async () => {
-    app.use("user", userRouter);
-    app.use("role", roleRouter);
-    app.use("group", groupRouter);
-    app.use("permission", permissionRouter);
+    app.use("/user", userRouter);
+    app.use("/role", roleRouter);
+    app.use("/group", groupRouter);
+    app.use("/permission", permissionRouter);
 
     app.listen(port, () => {
       console.log(`[server]: Server is running at http://localhost:${port}`);

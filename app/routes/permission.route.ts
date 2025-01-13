@@ -6,10 +6,10 @@ const permissionRouter: Express = express();
 
 const permissionController: PermissionController = new PermissionController();
 
-permissionRouter.post("", permissionController.createPermission);
+permissionRouter.post("/", permissionController.createPermission);
 
-permissionRouter.get(":id", permissionController.getPermission);
-permissionRouter.patch(":id", permissionController.editPermission);
-permissionRouter.delete(":id", permissionController.deletePermission);
+permissionRouter.get("/:id", permissionController.getPermission);
+permissionRouter.patch("/:id", permissionController.editPermission);
+permissionRouter.delete("/:id", permissionController.deletePermission);
 
 export default permissionRouter;

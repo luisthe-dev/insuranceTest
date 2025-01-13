@@ -14,6 +14,7 @@ export enum UserStatus {
 
 @Entity()
 export class User {
+
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -44,4 +45,16 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  buildResponseUser = () => {
+    return {
+      id: this.id,
+      fullName: this.fullName,
+      userName: this.userName,
+      email: this.email,
+      status: this.status,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
+    }
+  }
 }
