@@ -62,7 +62,7 @@ export default class PermissionService {
   getPermissions = async (
     paginationData: PaginationRequestDto
   ): Promise<PaginatedServiceResponseBuild> => {
-    const allPermissions = await this.permissionRepository.find({
+    const permissions = await this.permissionRepository.find({
       order: {
         id: "DESC",
       },
@@ -73,7 +73,7 @@ export default class PermissionService {
     const total_count = await this.permissionRepository.count();
 
     return this.responseHelper.buildPaginatedServiceResponse(
-      allPermissions,
+      permissions,
       total_count,
       "Permissions Fetched Successfully"
     );
@@ -101,14 +101,14 @@ export default class PermissionService {
   };
 
   editPermission = async (
-    userId: number,
+    permissionId: number,
     updateData: UpdatePermissionDto
   ): Promise<ServiceResponseBuild> => {
-    const userData = await this.getPermission(userId);
+    const permissionData = await this.getPermission(permissionId);
 
-    if (userData.status == "failed") return userData;
+    if (permissionData.status == "failed") return permissionData;
 
-    const permission = { ...userData.data, ...updateData };
+    const permission = { ...permissionData.data, ...updateData };
 
     permission.permissionLevels = JSON.stringify(permission.permissionLevels);
 

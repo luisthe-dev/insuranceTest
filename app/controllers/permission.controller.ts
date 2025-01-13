@@ -14,9 +14,9 @@ export default class PermissionController {
   }
 
   createPermission = async (req: Request, res: Response) => {
-    const userData: CreatePermissionDto = req.body;
+    const permissionData: CreatePermissionDto = req.body;
 
-    const response = await this.permissionService.createPermission(userData);
+    const response = await this.permissionService.createPermission(permissionData);
 
     this.responseHelper.buildControllerResponse(response, res);
   };
@@ -47,9 +47,9 @@ export default class PermissionController {
   editPermission = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const userData: UpdatePermissionDto = req.body;
+    const permissionData: UpdatePermissionDto = req.body;
 
-    const response = await this.permissionService.editPermission(+id, userData);
+    const response = await this.permissionService.editPermission(+id, permissionData);
 
     this.responseHelper.buildControllerResponse(response, res);
   };

@@ -6,6 +6,7 @@ const roleRouter: Express = express();
 const roleController: RoleController = new RoleController();
 
 roleRouter.post("/", roleController.createRole);
+roleRouter.get("/", roleController.getRoles);
 
 roleRouter.get("/:id", roleController.getRole);
 roleRouter.patch("/:id", roleController.editRole);
