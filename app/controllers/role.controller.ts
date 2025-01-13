@@ -46,9 +46,9 @@ export default class RoleController {
   editRole = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const permissionData: UpdateRoleDto = req.body;
+    const roleData: UpdateRoleDto = req.body;
 
-    const response = await this.roleService.editRole(+id, permissionData);
+    const response = await this.roleService.editRole(+id, roleData);
 
     this.responseHelper.buildControllerResponse(response, res);
   };

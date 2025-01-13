@@ -7,6 +7,7 @@ const groupRouter: Express = express();
 const groupController: GroupController = new GroupController();
 
 groupRouter.post("/", groupController.createGroup);
+groupRouter.get("/", groupController.getGroups);
 
 groupRouter.get("/:id", groupController.getGroup);
 groupRouter.patch("/:id", groupController.editGroup);

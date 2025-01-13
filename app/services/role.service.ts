@@ -165,6 +165,10 @@ export default class RoleService {
   };
 
   deleteRole = async (roleId: number): Promise<ServiceResponseBuild> => {
+    const rolePermissions = await this.rolePermissionRepository.find({ where: { role: { id: roleId } } });
+
+    rolePermissions.map(rolePermissions => this.rolePermissionRepository.delete(rolePermissions.id));
+
     this.roleRepository.delete(roleId);
 
     return this.responseHelper.buildServiceResponse(
