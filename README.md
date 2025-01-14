@@ -1,7 +1,7 @@
-# Awesome Project Build with TypeORM
+# Test
 
 Steps to run this project:
 
 1. Run `npm i` command
-2. Setup database settings inside `data-source.ts` file
-3. Run `npm start` command
+2. Run `npm start:dev` command
+3. Visit `http://localhost:8000` to access
