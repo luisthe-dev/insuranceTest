@@ -26,15 +26,15 @@ export class UserPermission {
   @JoinTable()
   permission: Permission;
 
-  @ManyToOne(() => Group)
+  @ManyToOne(() => Group, { nullable: true })
   @JoinTable()
   group: Group;
 
-  @ManyToOne(() => Role)
+  @ManyToOne(() => Role, { nullable: true })
   @JoinTable()
   role: Role;
 
-  @Column({ type: "numeric" })
+  @Column({ type: "numeric", nullable: true })
   permissionLevel: number;
 
   @CreateDateColumn()
