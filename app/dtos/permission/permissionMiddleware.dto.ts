@@ -1,6 +1,6 @@
 export enum HTTPMethodMap {
-    GET = "view",
-    POST = "create",
-    PATCH = "edit",
-    DELETE = "delete"
+    GET = 1,
+    POST = 2,
+    PATCH = 3,
+    DELETE = 4
 }

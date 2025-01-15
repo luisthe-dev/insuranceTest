@@ -2,7 +2,7 @@ import { Repository } from "typeorm";
 import { UserPermission } from "../models/userPermission.model";
 import { AppDataSource } from "../data-source";
 import { UpdateUserRoleDto } from "../dtos/userPermission/updateUserRole.dto";
-import { ResponsesHelper, ServiceResponseBuild } from "../helpers/responses";
+import { ResponsesHelper, ServiceCodeMap, ServiceResponseBuild } from "../helpers/responses";
 import RoleService from "./role.service";
 import GroupService from "./group.service";
 import PermissionService from "./permission.service";
@@ -170,7 +170,7 @@ export class UserPermissionService {
         {},
         "Invalid Permission Level",
         false,
-        400
+        ServiceCodeMap.BAD_REQUEST
       );
     }
 
