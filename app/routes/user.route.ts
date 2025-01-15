@@ -18,7 +18,7 @@ userRouter.get("/:id", userController.getUser);
 userRouter.patch("/:id", userController.editUser);
 userRouter.delete("/:id", userController.deleteUser);
 
-userRouter.patch("/:id/permissions", userPermissionController.updateUserPermission);
+userRouter.patch("/:id/permission", userPermissionController.updateUserPermission);
 userRouter.patch("/:id/role", userPermissionController.updateUserRole);
 userRouter.patch("/:id/group", userPermissionController.updateUserGroup);
 

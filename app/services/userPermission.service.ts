@@ -12,6 +12,7 @@ import { Role } from "../models/role.model";
 import { Permission } from "../models/permission.model";
 import { UpdateUserGroupDto } from "../dtos/userPermission/updateUserGroup.dto";
 import { Group } from "../models/group.model";
+import { UpdateUserPermissionDto } from "../dtos/userPermission/updateUserPermission.dto";
 
 export class UserPermissionService {
   userPermissionRepository: Repository<UserPermission>;
@@ -75,13 +76,13 @@ export class UserPermissionService {
     });
 
     //@ts-ignore
-    delete userPermission.user.password;
+    delete userPermission?.user?.password;
 
     //@ts-ignore
-    delete userPermission.permission.permissionLevels;
+    delete userPermission?.permission?.permissionLevels;
 
     //@ts-ignore
-    delete userPermission.role.permissions;
+    delete userPermission?.group?.permissions;
 
     return this.responseHelper.buildServiceResponse(
       userPermission,
@@ -131,13 +132,77 @@ export class UserPermissionService {
     });
 
     //@ts-ignore
-    delete userPermission.user.password;
+    delete userPermission?.user?.password;
 
     //@ts-ignore
-    delete userPermission.permission.permissionLevels;
+    delete userPermission?.permission?.permissionLevels;
 
     //@ts-ignore
-    delete userPermission.group.permissions;
+    delete userPermission?.group?.permissions;
+
+    return this.responseHelper.buildServiceResponse(
+      userPermission,
+      "User Group Updated Successfully"
+    );
+  };
+
+  updateUserPermission = async (
+    userId: number,
+    updateData: UpdateUserPermissionDto
+  ): Promise<ServiceResponseBuild> => {
+    const permissionData = await this.permissionService.getPermission(
+      updateData.permissionId
+    );
+    const userData = await this.userService.getUser(userId);
+
+    if (userData.status == "failed") return userData;
+    if (permissionData.status == "failed") return permissionData;
+
+    let userPermission: UserPermission | null;
+
+    const user: User = userData.data;
+    const permission: Permission = permissionData.data;
+
+    const permissionLevels = JSON.parse(permission.permissionLevels);
+
+    if (permissionLevels.length < updateData.permissionLevel) {
+      return this.responseHelper.buildServiceResponse(
+        {},
+        "Invalid Permission Level",
+        false,
+        400
+      );
+    }
+
+    userPermission = await this.userPermissionRepository.findOne({
+      where: {
+        user: { id: user.id },
+        permission: { id: permission.id },
+      },
+      relations: ["user", "permission", "role"],
+    });
+
+    if (!userPermission)
+      userPermission = this.userPermissionRepository.create({
+        permission: permission,
+        user: user,
+        permissionLevel: updateData.permissionLevel,
+      });
+
+    userPermission.permissionLevel = updateData.permissionLevel;
+
+    await this.userPermissionRepository.save(userPermission, {
+      reload: true,
+    });
+
+    //@ts-ignore
+    delete userPermission?.user?.password;
+
+    //@ts-ignore
+    delete userPermission?.permission?.permissionLevels;
+
+    //@ts-ignore
+    delete userPermission?.group?.permissions;
 
     return this.responseHelper.buildServiceResponse(
       userPermission,
