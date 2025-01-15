@@ -4,6 +4,7 @@ import { ResponsesHelper } from "../helpers/responses";
 import { CreateRoleDto } from "../dtos/role/createRole.dto";
 import { paginationCheck } from "../helpers/dtos/pagination-request.dto";
 import { UpdateRoleDto } from "../dtos/role/updateRole.dto";
+import { UpdateRolePermissionDto } from "../dtos/role/updateRolePermission.dto";
 
 export default class RoleController {
   roleService: RoleService;
@@ -53,7 +54,7 @@ export default class RoleController {
     this.responseHelper.buildControllerResponse(response, res);
   };
 
-  deleteRole = async(req: Request, res: Response) => {
+  deleteRole = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const response = await this.roleService.deleteRole(+id);
@@ -61,7 +62,24 @@ export default class RoleController {
     this.responseHelper.buildControllerResponse(response, res);
   };
 
-  editRolePermission = (req: Request, res: Response) => {};
+  editRolePermission = async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-  deleteRolePermission = (req: Request, res: Response) => {};
+    const updateData: UpdateRolePermissionDto = req.body;
+
+    const response = await this.roleService.editRolePermission(+id, updateData);
+
+    this.responseHelper.buildControllerResponse(response, res);
+  };
+
+  deleteRolePermission = async (req: Request, res: Response) => {
+    const { id, permissionId } = req.params;
+
+    const response = await this.roleService.deleteRolePermission(
+      +id,
+      +permissionId
+    );
+
+    this.responseHelper.buildControllerResponse(response, res);
+  };
 }

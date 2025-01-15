@@ -13,6 +13,8 @@ import { RolePermission as RolePermissionModel } from "../models/rolePermission.
 import PermissionService from "./permission.service";
 import { PaginationRequestDto } from "../helpers/dtos/pagination-request.dto";
 import { UpdateRoleDto } from "../dtos/role/updateRole.dto";
+import { UpdateRolePermissionDto } from "../dtos/role/updateRolePermission.dto";
+import { Permission } from "../models/permission.model";
 
 export default class RoleService {
   roleRepository: Repository<Role>;
@@ -165,9 +167,13 @@ export default class RoleService {
   };
 
   deleteRole = async (roleId: number): Promise<ServiceResponseBuild> => {
-    const rolePermissions = await this.rolePermissionRepository.find({ where: { role: { id: roleId } } });
+    const rolePermissions = await this.rolePermissionRepository.find({
+      where: { role: { id: roleId } },
+    });
 
-    rolePermissions.map(rolePermissions => this.rolePermissionRepository.delete(rolePermissions.id));
+    rolePermissions.map((rolePermission) =>
+      this.rolePermissionRepository.delete(rolePermission.id)
+    );
 
     this.roleRepository.delete(roleId);
 
@@ -176,5 +182,77 @@ export default class RoleService {
       "Role Deleted Successfully"
     );
   };
-}
 
+  editRolePermission = async (
+    roleId: number,
+    updateData: UpdateRolePermissionDto
+  ): Promise<ServiceResponseBuild> => {
+    let rolePermission: RolePermissionModel | null = null;
+
+    const roleData = await this.getRole(roleId);
+    const permissionData = await this.permissionService.getPermission(
+      updateData.permissionId
+    );
+
+    if (roleData.status == "failed") return roleData;
+    if (permissionData.status == "failed") return permissionData;
+
+    const role: Role = roleData.data;
+    const permission: Permission = permissionData.data;
+
+    rolePermission = await this.rolePermissionRepository.findOne({
+      where: {
+        role: { id: roleId },
+        permission: { id: updateData.permissionId },
+      },
+    });
+
+    if (!rolePermission) {
+      rolePermission = this.rolePermissionRepository.create({
+        role: role,
+        permission: permission,
+        permissionLevel: updateData.permissionLevel,
+      });
+    }
+
+    rolePermission.permissionLevel = updateData.permissionLevel;
+
+    await this.rolePermissionRepository.save(rolePermission, { reload: true });
+
+    return this.responseHelper.buildServiceResponse(
+      rolePermission,
+      "Role Permissions Updated Successfully"
+    );
+  };
+
+  deleteRolePermission = async (
+    id: number,
+    permissionId: number
+  ): Promise<ServiceResponseBuild> => {
+    const roleData = await this.getRole(id);
+    const permissionData = await this.permissionService.getPermission(
+      permissionId
+    );
+
+    if (roleData.status == "failed") return roleData;
+    if (permissionData.status == "failed") return permissionData;
+
+    const role: Role = roleData.data;
+    const permission: Permission = permissionData.data;
+
+    const rolePermission: RolePermissionModel | null =
+      await this.rolePermissionRepository.findOneBy({
+        role: { id: role.id },
+        permission: { id: permission.id },
+      });
+
+    if (rolePermission) {
+      this.rolePermissionRepository.delete(rolePermission.id);
+    }
+
+    return this.responseHelper.buildServiceResponse(
+      {},
+      "Role Permissions Deleted Successfully"
+    );
+  };
+}

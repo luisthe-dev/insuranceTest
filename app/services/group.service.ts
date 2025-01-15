@@ -13,6 +13,8 @@ import { AppDataSource } from "../data-source";
 import { UpdateGroupDto } from "../dtos/group/updateGroup.dto";
 import { PaginationRequestDto } from "../helpers/dtos/pagination-request.dto";
 import { CreateGroupDto, GroupPermission } from "../dtos/group/createGroup.dto";
+import { UpdateGroupPermissionDto } from "../dtos/group/updateGroupPermission.dto";
+import { Permission } from "../models/permission.model";
 
 export default class GroupService {
   groupRepository: Repository<Group>;
@@ -35,14 +37,14 @@ export default class GroupService {
   createGroup = async (
     groupData: CreateGroupDto
   ): Promise<ServiceResponseBuild> => {
-    const existingRole = await this.groupRepository.findOneBy({
+    const existingGroup = await this.groupRepository.findOneBy({
       groupTitle: groupData.groupTitle,
     });
 
-    if (existingRole)
+    if (existingGroup)
       return this.responseHelper.buildServiceResponse(
         {},
-        `Role ${groupData.groupTitle} Has Already Been Set Up`,
+        `Group ${groupData.groupTitle} Has Already Been Set Up`,
         false,
         ServiceCodeMap.BAD_REQUEST
       );
@@ -56,31 +58,33 @@ export default class GroupService {
     });
 
     if (groupData.groupPermission && groupData.groupPermission.length > 0) {
-      groupData.groupPermission.map(async (groupPermission: GroupPermission) => {
-        let permissionData = await this.permissionService.getPermission(
-          groupPermission.permissionId
-        );
+      groupData.groupPermission.map(
+        async (groupPermission: GroupPermission) => {
+          let permissionData = await this.permissionService.getPermission(
+            groupPermission.permissionId
+          );
 
-        if (permissionData.status == "failed") return;
+          if (permissionData.status == "failed") return;
 
-        const permission = permissionData.data;
+          const permission = permissionData.data;
 
-        if (
-          JSON.parse(permission.permissionLevels).length <
-          groupPermission.permissionLevel
-        )
-          return;
+          if (
+            JSON.parse(permission.permissionLevels).length <
+            groupPermission.permissionLevel
+          )
+            return;
 
-        const groupPermissionModel = this.groupPermissionRepository.create({
-          permission: permission,
-          group: group,
-          permissionLevel: groupPermission.permissionLevel,
-        });
+          const groupPermissionModel = this.groupPermissionRepository.create({
+            permission: permission,
+            group: group,
+            permissionLevel: groupPermission.permissionLevel,
+          });
 
-        await this.groupPermissionRepository.save(groupPermissionModel, {
-          reload: true,
-        });
-      });
+          await this.groupPermissionRepository.save(groupPermissionModel, {
+            reload: true,
+          });
+        }
+      );
     }
 
     return this.responseHelper.buildServiceResponse(
@@ -178,6 +182,81 @@ export default class GroupService {
     return this.responseHelper.buildServiceResponse(
       {},
       "Group Deleted Successfully"
+    );
+  };
+
+  editGroupPermission = async (
+    groupId: number,
+    updateData: UpdateGroupPermissionDto
+  ): Promise<ServiceResponseBuild> => {
+    let groupPermission: GroupPermissionModel | null = null;
+
+    const groupData = await this.getGroup(groupId);
+    const permissionData = await this.permissionService.getPermission(
+      updateData.permissionId
+    );
+
+    if (groupData.status == "failed") return groupData;
+    if (permissionData.status == "failed") return permissionData;
+
+    const group: Group = groupData.data;
+    const permission: Permission = permissionData.data;
+
+    groupPermission = await this.groupPermissionRepository.findOne({
+      where: {
+        group: { id: groupId },
+        permission: { id: updateData.permissionId },
+      },
+    });
+
+    if (!groupPermission) {
+      groupPermission = this.groupPermissionRepository.create({
+        group: group,
+        permission: permission,
+        permissionLevel: updateData.permissionLevel,
+      });
+    }
+
+    groupPermission.permissionLevel = updateData.permissionLevel;
+
+    await this.groupPermissionRepository.save(groupPermission, {
+      reload: true,
+    });
+
+    return this.responseHelper.buildServiceResponse(
+      groupPermission,
+      "Group Permissions Updated Successfully"
+    );
+  };
+
+  deleteGroupPermission = async (
+    id: number,
+    permissionId: number
+  ): Promise<ServiceResponseBuild> => {
+    const groupData = await this.getGroup(id);
+    const permissionData = await this.permissionService.getPermission(
+      permissionId
+    );
+
+    if (groupData.status == "failed") return groupData;
+    if (permissionData.status == "failed") return permissionData;
+
+    const group: Group = groupData.data;
+    const permission: Permission = permissionData.data;
+
+    const groupPermission: GroupPermissionModel | null =
+      await this.groupPermissionRepository.findOneBy({
+        group: { id: group.id },
+        permission: { id: permission.id },
+      });
+
+    if (groupPermission) {
+      this.groupPermissionRepository.delete(groupPermission.id);
+    }
+
+    return this.responseHelper.buildServiceResponse(
+      {},
+      "Group Permissions Deleted Successfully"
     );
   };
 }

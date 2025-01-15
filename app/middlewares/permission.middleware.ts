@@ -20,7 +20,7 @@ export class PermissionMiddleware {
   rolePermissionRepository: Repository<RolePermission>;
   groupPermissionRepository: Repository<GroupPermission>;
 
-  UrlruleExemptions = ["/user/login"];
+  UrlruleExemptions = ["/user/login", "/user"];
 
   constructor() {
     this.permissionRepository = new Repository(
@@ -44,6 +44,9 @@ export class PermissionMiddleware {
   }
 
   handleAuth = async (req: Request, res: Response, next: NextFunction) => {
+    let rolePermission: RolePermission | null = null;
+    let groupPermission: GroupPermission | null = null;
+
     const requestUrl = req.url;
 
     if (this.UrlruleExemptions.includes(requestUrl.split("?")[0])) {
@@ -80,27 +83,28 @@ export class PermissionMiddleware {
         },
         relations: ["role", "group"],
       });
-
     if (!userPermission) return this.invalidExit(res);
 
     const role: Role = userPermission.role;
     const group: Group = userPermission.group;
 
-    const rolePermission: RolePermission | null =
-      await this.rolePermissionRepository.findOne({
+    if (role) {
+      rolePermission = await this.rolePermissionRepository.findOne({
         where: {
           role: { id: role.id },
           permission: { id: permission.id },
         },
       });
+    }
 
-    const groupPermission: GroupPermission | null =
-      await this.groupPermissionRepository.findOne({
+    if (group) {
+      groupPermission = await this.groupPermissionRepository.findOne({
         where: {
           group: { id: group.id },
           permission: { id: permission.id },
         },
       });
+    }
 
     const userPermissionLevel: number = userPermission.permissionLevel ?? 0;
     const rolePermissionLevel: number = rolePermission?.permissionLevel ?? 0;

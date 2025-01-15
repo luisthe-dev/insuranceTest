@@ -2,7 +2,11 @@ import { Repository } from "typeorm";
 import { UserPermission } from "../models/userPermission.model";
 import { AppDataSource } from "../data-source";
 import { UpdateUserRoleDto } from "../dtos/userPermission/updateUserRole.dto";
-import { ResponsesHelper, ServiceCodeMap, ServiceResponseBuild } from "../helpers/responses";
+import {
+  ResponsesHelper,
+  ServiceCodeMap,
+  ServiceResponseBuild,
+} from "../helpers/responses";
 import RoleService from "./role.service";
 import GroupService from "./group.service";
 import PermissionService from "./permission.service";
@@ -21,10 +25,15 @@ export class UserPermissionService {
   permissionService: PermissionService;
   userService: UserService;
   groupService: GroupService;
+  permissionRepository: Repository<Permission>;
 
   constructor() {
     this.userPermissionRepository = new Repository(
       UserPermission,
+      AppDataSource.manager
+    );
+    this.permissionRepository = new Repository(
+      Permission,
       AppDataSource.manager
     );
     this.roleService = new RoleService();
@@ -39,53 +48,52 @@ export class UserPermissionService {
     updateData: UpdateUserRoleDto
   ): Promise<ServiceResponseBuild> => {
     const roleData = await this.roleService.getRole(updateData.roleId);
-    const permissionData = await this.permissionService.getPermission(
-      updateData.permissionId
-    );
     const userData = await this.userService.getUser(userId);
 
     if (userData.status == "failed") return userData;
     if (roleData.status == "failed") return roleData;
-    if (permissionData.status == "failed") return permissionData;
 
     let userPermission: UserPermission | null;
 
     const user: User = userData.data;
     const role: Role = roleData.data;
-    const permission: Permission = permissionData.data;
 
-    userPermission = await this.userPermissionRepository.findOne({
-      where: {
-        user: { id: user.id },
-        permission: { id: permission.id },
-      },
-      relations: ["user", "permission", "group"],
-    });
+    const permissions: Permission[] = await this.permissionRepository.find();
 
-    if (!userPermission)
-      userPermission = this.userPermissionRepository.create({
-        role: role,
-        permission: permission,
-        user: user,
+    permissions.map(async (permission: Permission) => {
+      userPermission = await this.userPermissionRepository.findOne({
+        where: {
+          user: { id: user.id },
+          permission: { id: permission.id },
+        },
+        relations: ["user", "permission", "group"],
       });
 
-    userPermission.role = role;
+      if (!userPermission)
+        userPermission = this.userPermissionRepository.create({
+          role: role,
+          permission: permission,
+          user: user,
+        });
 
-    await this.userPermissionRepository.save(userPermission, {
-      reload: true,
+      userPermission.role = role;
+
+      await this.userPermissionRepository.save(userPermission, {
+        reload: true,
+      });
+
+      //@ts-ignore
+      delete userPermission?.user?.password;
+
+      //@ts-ignore
+      delete userPermission?.permission?.permissionLevels;
+
+      //@ts-ignore
+      delete userPermission?.group?.permissions;
     });
 
-    //@ts-ignore
-    delete userPermission?.user?.password;
-
-    //@ts-ignore
-    delete userPermission?.permission?.permissionLevels;
-
-    //@ts-ignore
-    delete userPermission?.group?.permissions;
-
     return this.responseHelper.buildServiceResponse(
-      userPermission,
+      { user, role },
       "User Role Updated Successfully"
     );
   };
@@ -95,53 +103,52 @@ export class UserPermissionService {
     updateData: UpdateUserGroupDto
   ): Promise<ServiceResponseBuild> => {
     const groupData = await this.groupService.getGroup(updateData.groupId);
-    const permissionData = await this.permissionService.getPermission(
-      updateData.permissionId
-    );
     const userData = await this.userService.getUser(userId);
 
     if (userData.status == "failed") return userData;
     if (groupData.status == "failed") return groupData;
-    if (permissionData.status == "failed") return permissionData;
 
     let userPermission: UserPermission | null;
 
     const user: User = userData.data;
     const group: Group = groupData.data;
-    const permission: Permission = permissionData.data;
 
-    userPermission = await this.userPermissionRepository.findOne({
-      where: {
-        user: { id: user.id },
-        permission: { id: permission.id },
-      },
-      relations: ["user", "permission", "role"],
-    });
+    const permissions: Permission[] = await this.permissionRepository.find();
 
-    if (!userPermission)
-      userPermission = this.userPermissionRepository.create({
-        group: group,
-        permission: permission,
-        user: user,
+    permissions.map(async (permission: Permission) => {
+      userPermission = await this.userPermissionRepository.findOne({
+        where: {
+          user: { id: user.id },
+          permission: { id: permission.id },
+        },
+        relations: ["user", "permission", "role"],
       });
 
-    userPermission.group = group;
+      if (!userPermission)
+        userPermission = this.userPermissionRepository.create({
+          group: group,
+          permission: permission,
+          user: user,
+        });
 
-    await this.userPermissionRepository.save(userPermission, {
-      reload: true,
+      userPermission.group = group;
+
+      await this.userPermissionRepository.save(userPermission, {
+        reload: true,
+      });
+
+      //@ts-ignore
+      delete userPermission?.user?.password;
+
+      //@ts-ignore
+      delete userPermission?.permission?.permissionLevels;
+
+      //@ts-ignore
+      delete userPermission?.group?.permissions;
     });
 
-    //@ts-ignore
-    delete userPermission?.user?.password;
-
-    //@ts-ignore
-    delete userPermission?.permission?.permissionLevels;
-
-    //@ts-ignore
-    delete userPermission?.group?.permissions;
-
     return this.responseHelper.buildServiceResponse(
-      userPermission,
+      { user, group },
       "User Group Updated Successfully"
     );
   };
@@ -206,7 +213,7 @@ export class UserPermissionService {
 
     return this.responseHelper.buildServiceResponse(
       userPermission,
-      "User Group Updated Successfully"
+      "User Permission Updated Successfully"
     );
   };
 }

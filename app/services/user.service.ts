@@ -153,6 +153,9 @@ export default class UserService {
       take: paginationData.limit,
     });
 
+    //@ts-ignore
+    users.map(user => delete user.password)
+
     const total_count = await this.userRepository.count();
 
     return this.responseHelper.buildPaginatedServiceResponse(
